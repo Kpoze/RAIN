@@ -39,17 +39,17 @@ jobs:
           STREAMLIT_DOCKER_PORT: ${{ secrets.STREAMLIT_DOCKER_PORT }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
 
-        run: docker-compose -f Docker/docker-compose.yml up -d --build
+        run: docker compose -f Docker/docker-compose.yml up -d --build
 
       - name: Wait for Services to be Healthy
         run: |
           echo "Waiting for services..."
           sleep 45
-          docker-compose -f Docker/docker-compose.yml ps
+          docker compose -f Docker/docker-compose.yml ps
           echo "Services are up!"
 
       - name: Run Tests
-        run: docker-compose -f Docker/docker-compose.yml exec -T api pytest
+        run: docker compose -f Docker/docker-compose.yml exec -T api pytest
 
   # Job 2: Publier les images (CD)
   push-to-registry:
