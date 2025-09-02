@@ -1,0 +1,28 @@
+# Ignorer les fichiers et dossiers de Docker
+Docker/
+docker-compose.yml
+Dockerfile
+
+# Ignorer l'environnement virtuel
+venv/
+.venv/
+
+# Ignorer les fichiers de Git
+.git/
+.gitignore
+
+# Ignorer les caches Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignorer les gros fichiers de données et les modèles
+# (ils seront montés via des volumes)
+*.csv
+*.npy
+bertopic_model_final
+
+# Ignorer les dossiers non nécessaires à l'API
+APP/
+Test/
+mlruns/

@@ -1,0 +1,2 @@
+IA/bertopic_model_final filter=lfs diff=lfs merge=lfs -text
+IA/document_embeddings.npy filter=lfs diff=lfs merge=lfs -text

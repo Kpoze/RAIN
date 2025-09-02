@@ -1,0 +1,175 @@
+services:
+  api:
+    build:
+      context: ../ 
+      dockerfile: API/Dockerfile
+    container_name: rain_api
+    restart: always
+    ports:
+      - "8000:8000"
+    
+    # Suggestion : Un seul volume pour tout le projet est plus simple
+    # Il montera tous vos dossiers (API, IA, Class...) d'un coup.
+    volumes:
+      - ../:/app
+
+    # On utilise le .env qui est dans le même dossier que ce fichier
+    env_file:
+      - .env 
+
+    # La commande pour le mode développement avec rechargement
+    command: uvicorn API.main:app --host 0.0.0.0 --port 8000 --reload
+    
+    depends_on:
+      postgres:
+        condition: service_healthy 
+      mongo:
+        condition: service_healthy 
+    networks:
+      - app_network
+
+  streamlit_ui:
+    build:
+      context: ../
+      dockerfile: UI/Dockerfile
+    container_name: streamlit_ui
+    ports:
+      - "${STREAMLIT_DOCKER_PORT}:8501"
+    volumes:
+      - ../:/app
+    env_file:
+      - .env
+    depends_on:
+      - api
+    networks:
+      - app_network
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres_db
+    restart: always
+    ports:
+      - "${DB_DOCKER_PORT}:5432"
+    env_file:
+      - .env 
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Root
+      - POSTGRES_DB=Rain
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Le chemin source est relatif à l'emplacement du docker-compose (Docker/)
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./sql_data.csv:/docker-entrypoint-initdb.d/sql_data.csv
+    networks:
+      - app_network
+        # MODIFICATION : Ajout d'un healthcheck
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Service pour la base de données MongoDB
+  mongo:
+    image: mongo:latest
+    container_name: mongo_db
+    restart: always
+    ports:
+      - "${MONGODB_DOCKER_PORT}:27017"
+    env_file:
+      - .env 
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=SuperAdmin
+      - MONGO_INITDB_ROOT_PASSWORD=Root
+    volumes:
+      - mongo_data:/data/db
+      # Le chemin source est relatif à l'emplacement du docker-compose (Docker/)
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
+      - ./sql_data.csv:/docker-entrypoint-initdb.d/sql_data.csv
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Service pour Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: always
+    ports:
+      - "${PROM_DOCKER_PORT}:9090"
+    env_file:
+      - .env 
+    volumes:
+      # Le chemin source est relatif à l'emplacement du docker-compose (Docker/)
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - app_network
+
+  # Service pour Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: always
+    ports:
+      - "${GRA_DOCKER_PORT}:3000"
+    env_file:
+      - .env 
+    depends_on:
+      - prometheus
+    networks:
+      - app_network
+
+  mlflow:
+    build:
+      context: ../
+      dockerfile: IA/MLflow/Dockerfile
+    container_name: mlflow_server
+    restart: always
+    ports:
+      - "${MLFLOW_DOCKER_PORT}:5000"
+    env_file:
+      - .env 
+    volumes:
+      - mlflow_data:/mlruns
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${MLFLOW_DB_NAME} --default-artifact-root /mlruns
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app_network
+
+  # AJOUT 2: Le "job" pour lancer votre script de monitoring à la demande
+  # Ce service ne démarrera pas tout seul.
+  monitoring_job:
+    build:
+      context: ../
+      dockerfile: IA/monitoring/Dockerfile
+    # La commande est de lancer votre script Python, pas l'API
+    command: python IA/monitoring/monitoring_script.py
+    volumes:
+      - ../:/app # On monte le code pour qu'il trouve le script
+    env_file:
+      - .env
+    profiles:
+      - "jobs" 
+    depends_on:
+      - mlflow # Le job attend que le serveur MLflow soit prêt
+      - postgres
+    networks:
+      - app_network
+  # Définition du réseau pour la communication entre les conteneurs
+networks:
+    app_network:
+      driver: bridge
+
+  # Définition des volumes pour la persistance des données des bases de données
+volumes:
+    postgres_data:
+    mongo_data:
+    mlflow_data:

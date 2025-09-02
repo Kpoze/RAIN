@@ -1,0 +1,34 @@
+# Fichiers d'environnement - NE JAMAIS PARTAGER LES SECRETS
+.env
+Docker/.env
+
+# Environnements virtuels Python
+venv/
+venv-*/
+
+# Cache et artefacts Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Dossiers de build et de distribution
+build/
+dist/
+*.egg-info/
+
+# Fichiers de données volumineux (optionnel)
+# Décommentez si vous ne voulez pas que vos CSV soient sur Git
+Data/*.csv
+
+# Artefacts MLflow
+mlruns/
+
+# Fichiers système d'exploitation
+.DS_Store
+Thumbs.db
+
+# Dossiers d'éditeur de code
+.vscode/
+.idea/
