@@ -6,93 +6,87 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Job 1: Construire et Tester (CI)
   build-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Build and Run Docker Compose
-        env:
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          MONGODB_NAME: ${{ secrets.MONGODB_NAME }}
-          MONGODB_USER: ${{ secrets.MONGODB_USER }}
-          MONGODB_PASSWORD: ${{ secrets.MONGODB_PASSWORD }}
-          MONGODB_HOST: ${{ secrets.MONGODB_HOST }}
-          MONGODB_PORT: ${{ secrets.MONGODB_PORT }}
-          BASE_URL: ${{ secrets.BASE_URL }}
-          MODEL_SAVE_PATH: ${{ secrets.MODEL_SAVE_PATH }}
-          EMBEDDINGS_SAVE_PATH: ${{ secrets.EMBEDDINGS_SAVE_PATH }}
-          MODEL_EMBEDDING_NAME: ${{ secrets.MODEL_EMBEDDING_NAME }}
-          MLFLOW_DB_NAME: ${{ secrets.MLFLOW_DB_NAME }}
-          MLFLOW_TRACKING_URL: ${{ secrets.MLFLOW_TRACKING_URL }}
-          GRA_DOCKER_PORT: ${{ secrets.GRA_DOCKER_PORT }}
-          MLFLOW_DOCKER_PORT: ${{ secrets.MLFLOW_DOCKER_PORT }}
-          PROM_DOCKER_PORT: ${{ secrets.PROM_DOCKER_PORT }}
-          DB_DOCKER_PORT: ${{ secrets.DB_DOCKER_PORT }}
-          MONGODB_DOCKER_PORT: ${{ secrets.MONGODB_DOCKER_PORT }}
-          STREAMLIT_DOCKER_PORT: ${{ secrets.STREAMLIT_DOCKER_PORT }}
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      # --- MODIFICATION CLÉ : On crée le fichier .env dynamiquement ---
+      - name: Create .env file for Docker Compose
+        run: |
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> Docker/.env
+          echo "DB_USER=${{ secrets.DB_USER }}" >> Docker/.env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> Docker/.env
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> Docker/.env
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> Docker/.env
+          echo "MONGODB_NAME=${{ secrets.MONGODB_NAME }}" >> Docker/.env
+          echo "MONGODB_USER=${{ secrets.MONGODB_USER }}" >> Docker/.env
+          echo "MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }}" >> Docker/.env
+          echo "MONGODB_HOST=${{ secrets.MONGODB_HOST }}" >> Docker/.env
+          echo "MONGODB_PORT=${{ secrets.MONGODB_PORT }}" >> Docker/.env
+          echo "BASE_URL=${{ secrets.BASE_URL }}" >> Docker/.env
+          echo "MODEL_SAVE_PATH=${{ secrets.MODEL_SAVE_PATH }}" >> Docker/.env
+          echo "EMBEDDINGS_SAVE_PATH=${{ secrets.EMBEDDINGS_SAVE_PATH }}" >> Docker/.env
+          echo "MODEL_EMBEDDING_NAME=${{ secrets.MODEL_EMBEDDING_NAME }}" >> Docker/.env
+          echo "MLFLOW_DB_NAME=${{ secrets.MLFLOW_DB_NAME }}" >> Docker/.env
+          echo "MLFLOW_TRACKING_URL=${{ secrets.MLFLOW_TRACKING_URL }}" >> Docker/.env
+          echo "GRA_DOCKER_PORT=${{ secrets.GRA_DOCKER_PORT }}" >> Docker/.env
+          echo "MLFLOW_DOCKER_PORT=${{ secrets.MLFLOW_DOCKER_PORT }}" >> Docker/.env
+          echo "PROM_DOCKER_PORT=${{ secrets.PROM_DOCKER_PORT }}" >> Docker/.env
+          echo "DB_DOCKER_PORT=${{ secrets.DB_DOCKER_PORT }}" >> Docker/.env
+          echo "MONGODB_DOCKER_PORT=${{ secrets.MONGODB_DOCKER_PORT }}" >> Docker/.env
+          echo "STREAMLIT_DOCKER_PORT=${{ secrets.STREAMLIT_DOCKER_PORT }}" >> Docker/.env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> Docker/.env
 
+      - name: Build and Run Docker Compose
+        # Cette étape n'a plus besoin du bloc 'env:', car docker-compose va trouver le fichier .env
         run: docker compose -f Docker/docker-compose.yml up -d --build
 
       - name: Wait for Services to be Healthy
         run: |
           echo "Waiting for services..."
-          sleep 45
+          sleep 60 # J'augmente légèrement le temps pour être sûr que tout charge
           docker compose -f Docker/docker-compose.yml ps
           echo "Services are up!"
 
       - name: Run Tests
-        run: docker compose -f Docker/docker-compose.yml exec -T api pytest
+        run: docker compose -f Docker/docker-compose.yml exec -T api pytest Tests/
 
-  # Job 2: Publier les images (CD)
   push-to-registry:
-    # Ce job ne démarre que si 'build-and-test' a réussi
     needs: build-and-test
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Étape A: Se connecter au registre de conteneurs de GitHub
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GIT_TOKEN }}
 
-      # Étape B: Construire et pousser l'image de l'API
       - name: Build and push API image
         uses: docker/build-push-action@v5
         with:
-          context: . # Le contexte est la racine du projet
-          file: ./API/Dockerfile # Le chemin vers le Dockerfile de l'API
+          context: .
+          file: ./API/Dockerfile
           push: true
-          # IMPORTANT: Remplacez VOTRE_NOM_GITHUB par votre nom d'utilisateur GitHub
           tags: ghcr.io/Kpoze/rain-api:latest
 
-      # Étape C: Construire et pousser l'image de l'UI
       - name: Build and push UI image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./UI/Dockerfile # Le chemin vers le Dockerfile de l'UI
+          file: ./UI/Dockerfile
           push: true
           tags: ghcr.io/Kpoze/rain-ui:latest
 
-      # Étape D: Construire et pousser l'image de MLflow
       - name: Build and push MLflow image
         uses: docker/build-push-action@v5
         with:
-          context: ./Docker # Le contexte est le dossier Docker
-          file: ./Docker/mlflow/Dockerfile # Le chemin vers le Dockerfile de MLflow
+          context: ./Docker
+          file: ./Docker/mlflow/Dockerfile
           push: true
           tags: ghcr.io/Kpoze/rain-mlflow:latest
