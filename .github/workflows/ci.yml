@@ -68,40 +68,43 @@ jobs:
         working-directory: ./Docker
         run: docker compose exec -T api pytest Tests/
 
-  push-to-registry:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+push-to-registry:
+  needs: build-and-test
+  runs-on: ubuntu-latest
+  permissions:
+    contents: read
+    packages: write
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GIT_TOKEN }}
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GIT_TOKEN }}
 
-      - name: Build and push API image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./API/Dockerfile
-          push: true
-          tags: ghcr.io/Kpoze/rain-api:latest
+    - name: Build and push API image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./API/Dockerfile
+        push: true
+        tags: ghcr.io/${{ github.repository_owner }}/rain-api:latest
 
-      - name: Build and push UI image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./UI/Dockerfile
-          push: true
-          tags: ghcr.io/Kpoze/rain-ui:latest
+    - name: Build and push UI image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./UI/Dockerfile
+        push: true
+        tags: ghcr.io/${{ github.repository_owner }}/rain-ui:latest
 
-      - name: Build and push MLflow image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./Docker
-          file: ./Docker/mlflow/Dockerfile
-          push: true
-          tags: ghcr.io/Kpoze/rain-mlflow:latest
+    - name: Build and push MLflow image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./Docker
+        file: ./Docker/mlflow/Dockerfile
+        push: true
+        tags: ghcr.io/${{ github.repository_owner }}/rain-mlflow:latest
