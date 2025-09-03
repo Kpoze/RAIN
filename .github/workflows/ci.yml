@@ -108,7 +108,7 @@ jobs:
       - name: Build and push MLflow image
         uses: docker/build-push-action@v5
         with:
-          context: ./Docker
-          file: ./Docker/mlflow/Dockerfile
+          context: ./IA/MLflow
+          file: ./IA/MLflow/Dockerfile
           push: true
           tags: ghcr.io/${{ steps.string.outputs.OWNER_LC }}/rain-mlflow:latest
