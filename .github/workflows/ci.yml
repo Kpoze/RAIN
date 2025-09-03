@@ -47,6 +47,11 @@ jobs:
           echo "STREAMLIT_DOCKER_PORT=${{ secrets.STREAMLIT_DOCKER_PORT }}" >> Docker/.env
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> Docker/.env
 
+      - name: Verify files exist
+        run: |
+          echo "Listing files in Docker directory:"
+          ls -la Docker/
+
       - name: Build and Run Docker Compose
         working-directory: ./Docker
         run: docker compose up -d --build
