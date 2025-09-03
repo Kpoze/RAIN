@@ -378,7 +378,7 @@ python-multipart==0.0.20
     # via -r Requirements/requirements-app.in
 pytz==2025.2
     # via pandas
-pywin32==311
+#pywin32==311
     # via docker
 pyyaml==6.0.2
     # via
