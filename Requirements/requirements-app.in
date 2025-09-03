@@ -26,3 +26,4 @@ python-jose[cryptography]
 pydantic[email]
 python-multipart
 streamlit
+torch --index-url https://download.pytorch.org/whl/cpu

@@ -11,7 +11,17 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
+      # --- AJOUTEZ CETTE ÉTAPE ---
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo swapon /swapfile
+          sudo fallocate -l 20G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
       # --- MODIFICATION CLÉ : On crée le fichier .env dynamiquement ---
       - name: Create .env file for Docker Compose
         run: |
