@@ -11,17 +11,15 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      # --- AJOUTEZ CETTE ÉTAPE ---
-      - name: Free up disk space
+      # --- ÉTAPE DE NETTOYAGE SIMPLIFIÉE ---
+      - name: Free up disk space on runner
         run: |
+          echo "Initial free space:"
+          df -h
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo swapon /swapfile
-          sudo fallocate -l 20G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
+          echo "Space after cleanup:"
+          df -h
       # --- MODIFICATION CLÉ : On crée le fichier .env dynamiquement ---
       - name: Create .env file for Docker Compose
         run: |
@@ -56,7 +54,7 @@ jobs:
       - name: Wait for Services to be Healthy
         run: |
           echo "Waiting for services..."
-          sleep 60 # J'augmente légèrement le temps pour être sûr que tout charge
+          sleep 60 
           docker compose -f Docker/docker-compose.yml ps
           echo "Services are up!"
 
