@@ -62,7 +62,7 @@ def train_and_save_model(output_model_path):
     print(f"\nSauvegarde du modèle entraîné à l'emplacement : {output_model_path}")
     # La méthode .save() gère la sérialisation de tous les composants du modèle
     #topic_model.save(output_model_path)
-    topic_model.save(output_model_path, save_embedding_model=False)
+    topic_model.save("IA/bertopic_model_final", serialization="safetensors")
 
     print("\n--- Processus terminé. L'artefact du modèle a été créé. ---")
     
