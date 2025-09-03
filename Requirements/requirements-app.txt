@@ -46,6 +46,7 @@ catalogue==2.0.10
     #   thinc
 certifi==2025.4.26
     # via
+    #   httpcore
     #   httpx
     #   requests
 cffi==1.17.1
@@ -145,15 +146,15 @@ greenlet==3.2.2
     #   sqlalchemy
 gunicorn==23.0.0
     # via auth
-h11==0.9.0
+h11==0.16.0
     # via
     #   httpcore
     #   uvicorn
 hdbscan==0.8.40
     # via bertopic
-httpcore==0.13.2
+httpcore==1.0.9
     # via httpx
-httpx==0.25.1
+httpx==0.27.0
     # via -r Requirements/requirements-app.in
 huggingface-hub==0.33.2
     # via
@@ -377,7 +378,7 @@ python-multipart==0.0.20
     # via -r Requirements/requirements-app.in
 pytz==2025.2
     # via pandas
-#pywin32==311
+pywin32==311
     # via docker
 pyyaml==6.0.2
     # via
@@ -450,7 +451,6 @@ smmap==5.0.2
 sniffio==1.3.1
     # via
     #   anyio
-    #   httpcore
     #   httpx
 soupsieve==2.7
     # via beautifulsoup4
