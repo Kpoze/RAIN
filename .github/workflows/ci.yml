@@ -66,6 +66,13 @@ jobs:
           docker compose ps
           echo "Services are up!"
 
+      - name: Debug file inside container
+        working-directory: ./Docker
+        run: |
+          echo "--- Checking the model file inside the container ---"
+          docker compose exec -T api ls -lh /app/IA/Model/
+          docker compose exec -T api head /app/IA/Model/embeddings.npy
+
       - name: Run Tests
         working-directory: ./Docker
         run: docker compose exec -T api pytest Tests/
