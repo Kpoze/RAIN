@@ -52,6 +52,7 @@ jobs:
         run: docker compose up -d --build
 
       - name: Wait for Services to be Healthy
+        working-directory: ./Docker
         run: |
           echo "Waiting for services..."
           sleep 60 
