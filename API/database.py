@@ -3,7 +3,9 @@ import os
 from Database.db import * 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-# --- Connexion MongoDB ---
+from dotenv import load_dotenv 
+load_dotenv()
+
 
 client = AsyncIOMotorClient(f'mongodb://{os.environ['MONGODB_USER']}:{os.environ['MONGODB_PASSWORD']}@{os.environ['MONGODB_HOST']}:27017/{os.environ['MONGODB_NAME']}')
 db = client["Rain"]
