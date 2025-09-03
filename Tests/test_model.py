@@ -69,9 +69,9 @@ def test_transform_output_format(topic_model, df_test):
     # Le reste du test est inchangé
     topics, probabilities = topic_model.transform(sample_data)
     
-    assert isinstance(topics, list), "La sortie 'topics' devrait être une liste."
-    assert isinstance(probabilities, np.ndarray), "La sortie 'probabilities' devrait être un tableau numpy."
-    assert len(topics) == len(sample_data), "Le nombre de prédictions doit correspondre au nombre de documents en entrée."
+    assert isinstance(topics, np.ndarray), "La sortie 'topics' devrait être un tableau numpy."
+    assert isinstance(probabilities, np.ndarray)
+    assert len(topics) == len(sample_data)
     print("OK")
 
 def test_performance_non_regression(topic_model, df_test): 
@@ -85,11 +85,11 @@ def test_performance_non_regression(topic_model, df_test):
         pytest.fail(f"Impossible de récupérer les données de test : {e}")
     
     topics, _ = topic_model.transform(fixed_test_data)
+
+    # (topics == -1) crée un tableau de Vrai/Faux, et .sum() compte les Vrai.
+    noise_count = (topics == -1).sum()
     
-    # On calcule le pourcentage de bruit (outliers)
-    noise_count = topics.count(-1)
     noise_percentage = (noise_count / len(fixed_test_data)) * 100
     
-    # On définit un seuil acceptable.
     assert noise_percentage <= 50.0, f"Le taux de bruit ({noise_percentage:.2f}%) est trop élevé."
     print("OK")

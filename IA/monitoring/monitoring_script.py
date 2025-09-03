@@ -56,8 +56,8 @@ def monitor_production_model():
 
     # --- 4. Calcul des métriques de monitoring ---
     # Métrique 1 : Pourcentage de bruit (indicateur de data drift)
-    num_outliers = topics.count(-1) if isinstance(topics, list) else list(topics).count(-1)
-    noise_percentage = (num_outliers / len(corpus_new_data)) * 100 if len(corpus_new_data) > 0 else 0
+    noise_count = (topics == -1).sum()
+    noise_percentage = (noise_count / len(corpus_new_data)) * 100 if len(corpus_new_data) > 0 else 0
     
     # Métrique 2 : Score de cohérence thématique (C_v)
     coherence_score = 0.0
