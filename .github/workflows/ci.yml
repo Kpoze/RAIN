@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          lfs: true 
       # --- ÉTAPE DE NETTOYAGE SIMPLIFIÉE ---
       - name: Free up disk space on runner
         run: |
