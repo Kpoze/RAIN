@@ -78,6 +78,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Convert owner to lowercase
+        id: string
+        run: echo "OWNER_LC=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -91,7 +95,7 @@ jobs:
           context: .
           file: ./API/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/rain-api:latest
+          tags: ghcr.io/${{ steps.string.outputs.OWNER_LC }}/rain-api:latest
 
       - name: Build and push UI image
         uses: docker/build-push-action@v5
@@ -99,7 +103,7 @@ jobs:
           context: .
           file: ./UI/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/rain-ui:latest
+          tags: ghcr.io/${{ steps.string.outputs.OWNER_LC }}/rain-ui:latest
 
       - name: Build and push MLflow image
         uses: docker/build-push-action@v5
@@ -107,4 +111,4 @@ jobs:
           context: ./Docker
           file: ./Docker/mlflow/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/rain-mlflow:latest
+          tags: ghcr.io/${{ steps.string.outputs.OWNER_LC }}/rain-mlflow:latest
