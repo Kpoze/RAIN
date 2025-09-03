@@ -70,8 +70,8 @@ jobs:
         working-directory: ./Docker
         run: |
           echo "--- Checking the model file inside the container ---"
-          docker compose exec -T api ls -lh /app/IA/Model/
-          docker compose exec -T api head /app/IA/Model/embeddings.npy
+          docker compose exec -T api ls -lh /app/IA
+          docker compose exec -T api head /app/IA/embeddings.npy
 
       - name: Run Tests
         working-directory: ./Docker
